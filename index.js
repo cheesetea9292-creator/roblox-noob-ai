@@ -16,34 +16,50 @@ app.post("/chat", async (req, res) => {
       return res.json({ reply: "bro you didnt send a message 💀" });
     }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return res.json({ reply: "SERVER ERROR: no OPENAI_API_KEY set" });
+    }
+
+    const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: [
+        input: [
           {
             role: "system",
-            content:
-              "You are a chaotic but friendly Roblox noob NPC. Keep replies short (1-3 sentences), funny, and slightly random. Never say anything sexual, hateful, or violent."
+            content: "You are a chaotic but friendly Roblox noob NPC. Keep replies short (1-3 sentences), funny, and slightly random. Never say anything sexual, hateful, or violent."
           },
-          { role: "user", content: userMessage }
+          {
+            role: "user",
+            content: userMessage
+          }
         ],
-        max_tokens: 120,
+        max_output_tokens: 120,
         temperature: 1.1
       })
     });
 
     const data = await response.json();
+
+    // If OpenAI returns an error, show it (helps debugging)
+    if (!response.ok) {
+      return res.json({
+        reply: "OPENAI ERROR: " + (data.error?.message || "unknown error")
+      });
+    }
+
     const reply =
-      data.choices?.[0]?.message?.content || "uhh my brain crashed";
+      data.output?.[0]?.content?.[0]?.text ||
+      "uhh my brain crashed";
 
     res.json({ reply });
   } catch (err) {
-    res.json({ reply: "ERROR. i exploded. try again." });
+    res.json({ reply: "SERVER ERROR: " + err.message });
   }
 });
 
