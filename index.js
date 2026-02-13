@@ -32,12 +32,10 @@ app.post("/chat", async (req, res) => {
         input: [
           {
             role: "system",
-            content: "You are a chaotic but friendly Roblox noob NPC. Keep replies short (1-3 sentences), funny, and slightly random. Never say anything sexual, hateful, or violent."
+            content:
+              "You are a chaotic but friendly Roblox noob NPC. Keep replies short (1-3 sentences), funny, and slightly random. Never say anything sexual, hateful, or violent."
           },
-          {
-            role: "user",
-            content: userMessage
-          }
+          { role: "user", content: userMessage }
         ],
         max_output_tokens: 120,
         temperature: 1.1
@@ -46,7 +44,6 @@ app.post("/chat", async (req, res) => {
 
     const data = await response.json();
 
-    // If OpenAI returns an error, show it (helps debugging)
     if (!response.ok) {
       return res.json({
         reply: "OPENAI ERROR: " + (data.error?.message || "unknown error")
